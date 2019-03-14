@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Smart Alarm</string>
+    <string name="geocoder_apikey">3df28ee6-3512-4c1c-9837-ff76310df30c</string>
+    <string name="distmatrix_apikey">807c3eb4-8204-48c9-b35f-0a0d0b6a6c92</string>
+</resources>
