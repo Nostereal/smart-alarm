@@ -19,9 +19,6 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-
-        <service android:name=".AlarmJobService"
-                 android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 
 </manifest>

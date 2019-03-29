@@ -1,21 +1,26 @@
 package com.tema.smartalarm
 
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.app.TimePickerDialog
 import android.app.job.JobInfo
 import android.app.job.JobScheduler
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.*
+import com.tema.smartalarm.utils.getTimeFromText
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-class MainActivity : AppCompatActivity() {
+class
+MainActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
@@ -32,6 +37,15 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val broadcastIntent = Intent(this, Receiver::class.java)
+        val pIntent = PendingIntent.getBroadcast(
+            this,
+            0,
+            broadcastIntent,
+            0
+        )
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
         val prefs = getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
 
@@ -64,9 +78,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         doneButton.setOnClickListener {
+            //TODO: move code from comment below to broadcast receiver
+            /*
             val departAddress = departAddressEditText.text.toString()
             val destAddress = destAddressEditText.text.toString()
             val departTime = departureTimePicker.text.toString()
+            var destinationTime: Long
 
             job = uiScope.launch {
                 val coordsListDef = async(Dispatchers.IO) { GeocoderApi().getCoordsList(departAddress, destAddress) }
@@ -75,7 +92,14 @@ class MainActivity : AppCompatActivity() {
                 val tripDurationDef = async(Dispatchers.IO) { DistMatrixApi().getTripDuration(departTime, coordsList, mode) }
                 val tripDuration = tripDurationDef.await()
                 Log.d(TAG, "$tripDuration")
+                destinationTime = getTimeFromText(departTime).timeInMillis + tripDuration
             }
+            */
+
+//            alarmManager.setInexactRepeating(
+//                AlarmManager.RTC,
+//
+//            )
 
             val editor = prefs.edit()
             with(editor) {
@@ -107,24 +131,5 @@ class MainActivity : AppCompatActivity() {
         TimePickerDialog(context, timeSetListener, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show()
     }
 
-    fun scheduleJob(v: View) {
-        val componentName = ComponentName(this, AlarmJobService::class.java)
-        val info = JobInfo.Builder(0, componentName)
-            .setPersisted(true)
-            .setRequiredNetworkType(JobInfo.NETWORK_TYPE_NOT_ROAMING)
-            .build()
 
-        val scheduler = getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
-        val resultCode = scheduler.schedule(info)
-        if (resultCode == JobScheduler.RESULT_SUCCESS)
-            Log.d(TAG, "Job  scheduled")
-        else
-            Log.d(TAG, "Job scheduling failed")
-    }
-
-    fun cancelJob(v: View) {
-        val scheduler = getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
-        scheduler.cancel(0)
-        Log.d(TAG, "Job cancelled")
-    }
 }
