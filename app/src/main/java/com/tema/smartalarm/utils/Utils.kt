@@ -2,7 +2,7 @@ package com.tema.smartalarm.utils
 
 import java.util.*
 
-public fun getTimeFromText(text: String): Calendar {
+fun getTimeFromText(text: String): Calendar {
     val timeList = text.split(':')
     val calendar = Calendar.getInstance()
     with(calendar) {

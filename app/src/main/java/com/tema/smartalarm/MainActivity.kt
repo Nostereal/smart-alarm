@@ -30,22 +30,13 @@ MainActivity : AppCompatActivity() {
 
     private val FILE_NAME = "data"
 
-    private var job: Job? = null
+//    private var job: Job? = null
 
-    private val uiScope = CoroutineScope(Dispatchers.Main)
+//    private val uiScope = CoroutineScope(Dispatchers.Main)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        val broadcastIntent = Intent(this, Receiver::class.java)
-        val pIntent = PendingIntent.getBroadcast(
-            this,
-            0,
-            broadcastIntent,
-            0
-        )
-        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
         val prefs = getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
 
@@ -69,6 +60,26 @@ MainActivity : AppCompatActivity() {
 
         }
 
+        val departAddress = departAddressEditText.text.toString()
+        val destAddress = destAddressEditText.text.toString()
+        val departTime = departureTimePicker.text.toString()
+
+        val broadcastIntent = Intent(this, Receiver::class.java)
+        with(broadcastIntent) {
+            putExtra("mode", mode)
+            putExtra("departAddress", departAddress)
+            putExtra("destAddress", destAddress)
+            putExtra("departTime", departTime)
+            putExtra("alarmTime", alarmTimeTV.text.toString())
+        }
+        val pIntent = PendingIntent.getBroadcast(
+            this,
+            0,
+            broadcastIntent,
+            0
+        )
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
         departureTimePicker.setOnClickListener {
             timePicker(this, it as TextView)
         }
@@ -78,28 +89,16 @@ MainActivity : AppCompatActivity() {
         }
 
         doneButton.setOnClickListener {
-            //TODO: move code from comment below to broadcast receiver
-            /*
-            val departAddress = departAddressEditText.text.toString()
-            val destAddress = destAddressEditText.text.toString()
-            val departTime = departureTimePicker.text.toString()
-            var destinationTime: Long
+            val standardAlarmInMillis = getTimeFromText(alarmTimeTV.text.toString().split(": ")[1]).timeInMillis
+            val hourInMillis = 1000L * 60 * 60
+            val dayInMillis = hourInMillis * 24L
 
-            job = uiScope.launch {
-                val coordsListDef = async(Dispatchers.IO) { GeocoderApi().getCoordsList(departAddress, destAddress) }
-                val coordsList = coordsListDef.await()
-
-                val tripDurationDef = async(Dispatchers.IO) { DistMatrixApi().getTripDuration(departTime, coordsList, mode) }
-                val tripDuration = tripDurationDef.await()
-                Log.d(TAG, "$tripDuration")
-                destinationTime = getTimeFromText(departTime).timeInMillis + tripDuration
-            }
-            */
-
-//            alarmManager.setInexactRepeating(
-//                AlarmManager.RTC,
-//
-//            )
+            alarmManager.setInexactRepeating(
+                AlarmManager.RTC,
+                standardAlarmInMillis - hourInMillis,
+                dayInMillis,
+                pIntent
+            )
 
             val editor = prefs.edit()
             with(editor) {
@@ -115,7 +114,7 @@ MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        job?.cancel()
+//        job?.cancel()
     }
 
     private fun timePicker(context: Context, textView: TextView) {
